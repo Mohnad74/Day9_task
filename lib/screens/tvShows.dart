@@ -81,6 +81,7 @@ class _TVShowsListPageState extends State<TVShowsListPage> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => TVShowsDetailsScreen(
+                              id: tvshow.id,
                               name: tvshow.name,
                               path: tvshow.posterPath,
                               overview: tvshow.overview,

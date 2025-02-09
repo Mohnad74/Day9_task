@@ -1,18 +1,25 @@
+import 'package:day9_task/model/tv_shows.dart';
 import 'package:flutter/material.dart';
+import 'package:day9_task/web_service/api_service.dart';
 
 class TVShowsDetailsScreen extends StatelessWidget {
   TVShowsDetailsScreen(
       {super.key,
+      required this.id,
       required this.name,
       required this.path,
       required this.overview,
       required this.firstAirDate,
       required this.language});
+  int id;
   String name;
   String path;
   String overview;
   String firstAirDate;
   String language;
+  late Future<List<tv_show>> recommendations =
+      ApiService().getRecommendations(id);
+  late Future<List<dynamic>> seasons = ApiService().getSeasons(id);
 
   @override
   Widget build(BuildContext context) {
@@ -68,14 +75,70 @@ class TVShowsDetailsScreen extends StatelessWidget {
                   color: Colors.green),
             ),
             SizedBox(
-              height: 3,
+              height: 6,
             ),
             Text(
-              overview,
+              "Seasons",
               style: TextStyle(
-                fontSize: 16,
-              ),
+                  color: Colors.green,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
             ),
+            FutureBuilder<List<dynamic>>(
+                future: seasons,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Text("Error loading Seasons");
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Text("No Seasons Available");
+                  }
+                  return Column(
+                    children: snapshot.data!.map((season) {
+                      return ListTile(
+                        title: Text(
+                          season['name'],
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text("Episodes: ${season['episode_count']}"),
+                      );
+                    }).toList(),
+                  );
+                }),
+            SizedBox(
+              height: 6,
+            ),
+            Text(
+              "Recommendations",
+              style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold),
+            ),
+            FutureBuilder<List<tv_show>>(
+                future: recommendations,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Text("Error loading recommended shows");
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return Text("No recommendations available");
+                  }
+                  return Column(
+                    children: snapshot.data!.map((show) {
+                      return ListTile(
+                        leading: Image.network(
+                            'https://image.tmdb.org/t/p/w92${show.posterPath}'),
+                        title: Text(
+                          show.name,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                })
           ],
         ),
       )),
